@@ -55,9 +55,6 @@ public class BrowserTab extends CordovaPlugin {
   private static final String ACTION_CUSTOM_TABS_CONNECTION =
           "android.support.customtabs.action.CustomTabsService";
 
-  private boolean mFindCalled = false;
-  private String mCustomTabsBrowser;
-
   @Override
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
     Log.d(LOG_TAG, "executing " + action);
@@ -123,10 +120,6 @@ public class BrowserTab extends CordovaPlugin {
   }
 
   private String findCustomTabBrowser() {
-    if (mFindCalled) {
-      return mCustomTabsBrowser;
-    }
-
     PackageManager pm = cordova.getActivity().getPackageManager();
     Intent webIntent = new Intent(
         Intent.ACTION_VIEW,
@@ -134,19 +127,19 @@ public class BrowserTab extends CordovaPlugin {
     List<ResolveInfo> resolvedActivityList =
         pm.queryIntentActivities(webIntent, PackageManager.GET_RESOLVED_FILTER);
 
+    String result = null;
     for (ResolveInfo info : resolvedActivityList) {
       if (!isFullBrowser(info)) {
         continue;
       }
 
       if (hasCustomTabWarmupService(pm, info.activityInfo.packageName)) {
-        mCustomTabsBrowser = info.activityInfo.packageName;
+        result = info.activityInfo.packageName;
         break;
       }
     }
 
-    mFindCalled = true;
-    return mCustomTabsBrowser;
+    return result;
   }
 
   private boolean isFullBrowser(ResolveInfo resolveInfo) {
